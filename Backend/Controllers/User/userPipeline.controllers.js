@@ -95,37 +95,38 @@ const countryWithHighestRegisteredUsers = asyncHanlder(async (req, resp) => {
 });
 
 //quey-6: List all of the unique eyecolors
-const uniqueEyeColor=asyncHanlder(async (req,resp)=>{
-  let response=await data.aggregate([
+const uniqueEyeColor = asyncHanlder(async (req, resp) => {
+  let response = await data.aggregate([
     {
-      $group:{
-        _id:"$eyeColor"
-      }
+      $group: {
+        _id: "$eyeColor",
+      },
     },
   ]);
   let responseData = new apiResponse(200, response);
   resp.status(responseData.statusCode).json(responseData.data);
-})
+});
 
 //query-7:What is the average number of tags per user
-const averageTagsPerUser=asyncHanlder(async (req,resp)=>{
-  let response=await data.aggregate([
+const averageTagsPerUser = asyncHanlder(async (req, resp) => {
+  let response = await data.aggregate([
     {
-    $unwind: {
-      path: "$tags",
-    }
-  },
+      $unwind: {
+        path: "$tags",
+      },
+    },
     {
-      $group:{
-        _id:"$_id",
-        countEachTagsPerUser:{$sum:1}
-      }
-    },{
-      $group:{
-        _id:null,
-        averageTag:{$avg:"$countEachTagsPerUser"}
-      }
-    }
+      $group: {
+        _id: "$_id",
+        countEachTagsPerUser: { $sum: 1 },
+      },
+    },
+    {
+      $group: {
+        _id: null,
+        averageTag: { $avg: "$countEachTagsPerUser" },
+      },
+    },
   ]);
   // second option to doing this by $size which gives us the size of an array
   /*
@@ -146,7 +147,83 @@ const averageTagsPerUser=asyncHanlder(async (req,resp)=>{
   */
   let responseData = new apiResponse(200, response);
   resp.status(responseData.statusCode).json(responseData.data);
-})
+});
+
+// query-8:What are the name and age of user who are inactive and have "valit" as tag
+const findInactiveUserNameAndAge = asyncHanlder(async (req, resp) => {
+  let response = await data.aggregate([
+    {
+      $match: {
+        isActive: false,
+        tags: "velit",
+      },
+    },
+    {
+      $project: {
+        name: 1,
+        age: 1,
+      },
+    },
+  ]);
+  let responseData = new apiResponse(200, response);
+  resp.status(responseData.statusCode).json(responseData.data);
+});
+
+// query-9: Categorize users by their favourite fruit
+const categorizeUsersByFavouriteFruit = asyncHanlder(async (req, resp) => {
+  let response = await data.aggregate([
+    {
+      $group: {
+        _id: "$favoriteFruit",
+        users: { $push: "$name" },
+      },
+    },
+  ]);
+  let responseData = new apiResponse(200, response);
+  resp.status(responseData.statusCode).json(responseData.data);
+});
+
+//query-10: Find users who have both "enim" and "id"
+const usersHaveEnimAndId = asyncHanlder(async (req, resp) => {
+  let response = await data.aggregate([
+    {
+      $match: {
+        tags: {
+          $all: ["enim", "id"],
+        },
+      },
+    },
+    {
+      $group: {
+        _id: null,
+        users: { $push: "$name" },
+      },
+    },
+  ]);
+  let responseData = new apiResponse(200, response);
+  resp.status(responseData.statusCode).json(responseData.data);
+});
+
+// List all companies located in USA with corresponding user counts
+const allCompaniesLocatedInUSA = asyncHanlder(async (req, resp) => {
+  let response = await data.aggregate([
+    {
+      $match: {
+        "company.location.country": "USA",
+      },
+    },
+    {
+      $group: {
+        _id: null,
+        allCompanyBelongsToUsa: {
+          $push: "$company.title",
+        },
+      },
+    },
+  ]);
+  let responseData = new apiResponse(200, response);
+  resp.status(responseData.statusCode).json(responseData.data);
+});
 
 export {
   match1,
@@ -155,5 +232,9 @@ export {
   totalNumberOfMaleAndFemale,
   countryWithHighestRegisteredUsers,
   uniqueEyeColor,
-  averageTagsPerUser
+  averageTagsPerUser,
+  findInactiveUserNameAndAge,
+  categorizeUsersByFavouriteFruit,
+  usersHaveEnimAndId,
+  allCompaniesLocatedInUSA,
 };
