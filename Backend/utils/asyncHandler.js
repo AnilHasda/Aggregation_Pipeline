@@ -1,7 +1,7 @@
 const asyncHanlder=(requestHandler)=>{
-    return async ()=>{
+    return async (req,resp)=>{
         try{
-            await requestHandler();
+            await requestHandler(req,resp);
         }catch(error){
             console.log(error);
         }
