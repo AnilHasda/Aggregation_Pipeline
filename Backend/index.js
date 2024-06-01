@@ -5,10 +5,11 @@ let app = express();
 // dotenv configuration
 dotenv.config({ path: "./.env" });
 connection();
-import router from "./Routes/userRoutes/userRoutes.js";
+import router1 from "./Routes/userRoutes/userRoutes.js";
+import router2 from "./Routes/lookupRoutes/lookupRoutes.js";
 
-app.use("/api/v1/",router);
-
+app.use("/api/v1/",router1);
+app.use("/api/v1/",router2);
 let port = process.env.PORT || 3000;
 
 app.listen(port, () => {
